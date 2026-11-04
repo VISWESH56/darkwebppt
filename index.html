@@ -1,0 +1,917 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}</style></head><body>
+<title>The Dark Web</title>
+<style>
+:root {
+  --bg:    #06080F;
+  --bg-2:  #0C1526;
+  --bg-3:  #12203A;
+  --bord:  #1C3356;
+  --bord2: #274878;
+
+  --amber: #EEA020;
+  --a10:   rgba(238,160,32,.10);
+  --a20:   rgba(238,160,32,.20);
+  --a35:   rgba(238,160,32,.35);
+
+  --red:   #E05050;
+  --r10:   rgba(224,80,80,.10);
+  --r25:   rgba(224,80,80,.25);
+
+  --teal:  #22C0A0;
+  --t10:   rgba(34,192,160,.10);
+  --t25:   rgba(34,192,160,.25);
+
+  --w1:    #EDF2FA;
+  --w2:    #A0B4CC;
+  --w3:    #4D6480;
+
+  --mono: 'SF Mono','Fira Code','Consolas',monospace;
+  --sans: system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+button,input{font:inherit;border:none;background:none;cursor:pointer}
+
+html,body{
+  height:100%;overflow:hidden;
+  background:var(--bg);color:var(--w2);
+  font-family:var(--sans);font-size:clamp(13px,1.1vw,16px);
+  line-height:1.6;-webkit-font-smoothing:antialiased;
+}
+
+/* ── DECK ── */
+#deck{position:relative;width:100%;height:100vh;overflow:hidden}
+
+.slide{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:clamp(1.5rem,4vw,3rem) clamp(2rem,7vw,5rem);
+  opacity:0;pointer-events:none;
+  transform:translateX(50px);
+  transition:opacity .36s ease,transform .36s ease;
+  overflow-y:auto;
+}
+.slide.active{opacity:1;pointer-events:all;transform:none}
+.slide.prev{opacity:0;transform:translateX(-50px)}
+
+/* ── NAV ── */
+#dots{
+  position:fixed;bottom:1.4rem;left:50%;transform:translateX(-50%);
+  display:flex;align-items:center;gap:.55rem;z-index:100;
+}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--bord2);cursor:pointer;transition:all .2s}
+.dot.on{background:var(--amber);width:18px;border-radius:3px}
+.arrow{
+  position:fixed;top:50%;transform:translateY(-50%);
+  width:32px;height:32px;border-radius:50%;border:1px solid var(--bord);
+  color:var(--w3);display:flex;align-items:center;justify-content:center;
+  transition:all .2s;z-index:100;font-size:.9rem;
+}
+#prev{left:.8rem}#next{right:.8rem}
+.arrow:hover{border-color:var(--amber);color:var(--amber)}
+.arrow:disabled{opacity:.15;cursor:default}
+#snum{
+  position:fixed;top:1.2rem;right:1.4rem;
+  font-family:var(--mono);font-size:.65rem;color:var(--w3);z-index:100;letter-spacing:.08em;
+}
+#stitle{
+  position:fixed;top:1.2rem;left:1.4rem;
+  font-family:var(--mono);font-size:.62rem;color:var(--w3);z-index:100;letter-spacing:.12em;text-transform:uppercase;
+}
+
+/* ════════════════════════════════════════════
+   SLIDE 1 — HERO
+════════════════════════════════════════════*/
+#s0{text-align:center}
+
+.hero-eye{
+  font-family:var(--mono);font-size:.65rem;letter-spacing:.25em;text-transform:uppercase;
+  color:var(--amber);opacity:.75;margin-bottom:1.5rem;
+  display:flex;align-items:center;gap:.5rem;justify-content:center;
+}
+.hero-dot{width:5px;height:5px;border-radius:50%;background:var(--red);box-shadow:0 0 8px var(--red);animation:pulse 1.8s ease infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+
+.hero-title{
+  font-size:clamp(5rem,16vw,11rem);font-weight:900;
+  color:var(--amber);line-height:.85;letter-spacing:-.04em;
+  text-wrap:balance;margin-bottom:2rem;
+}
+
+.hero-line{
+  width:12rem;height:1px;
+  background:linear-gradient(90deg,transparent,var(--bord2),transparent);
+  margin:0 auto 2rem;
+}
+
+.hero-sub{
+  font-size:clamp(.9rem,1.4vw,1.1rem);color:var(--w3);max-width:28rem;
+  letter-spacing:.02em;
+}
+
+/* ════════════════════════════════════════════
+   SLIDE 2 — THREE LAYERS
+════════════════════════════════════════════*/
+.layers-stack{
+  display:flex;flex-direction:column;width:100%;max-width:58rem;
+  border-radius:8px;overflow:hidden;border:1px solid var(--bord);
+}
+
+.layer-row{
+  display:flex;align-items:center;
+  padding:clamp(.9rem,2vh,1.4rem) 1.6rem;gap:1.4rem;
+  position:relative;
+}
+.layer-row.surface{
+  background:linear-gradient(90deg,rgba(34,192,160,.12),rgba(34,192,160,.04));
+  border-bottom:1px solid var(--bord);flex:0 0 auto;
+}
+.layer-row.deep{
+  background:var(--bg-2);border-bottom:1px solid var(--bord);
+  flex:1;
+}
+.layer-row.dark{
+  background:linear-gradient(90deg,rgba(224,80,80,.12),rgba(224,80,80,.04));
+}
+
+.watermark{
+  position:absolute;right:1.6rem;top:50%;transform:translateY(-50%);
+  font-family:var(--mono);font-size:clamp(2rem,6vw,4rem);font-weight:900;
+  opacity:.06;letter-spacing:-.03em;
+}
+.surface .watermark{color:var(--teal)}
+.deep .watermark{color:var(--amber)}
+.dark .watermark{color:var(--red)}
+
+.layer-icon{font-size:clamp(2rem,4vw,3rem);flex-shrink:0}
+
+.layer-info{flex:1;min-width:0}
+.layer-name{
+  font-size:clamp(1rem,2.5vw,1.5rem);font-weight:800;
+  letter-spacing:-.02em;margin-bottom:.25rem;
+}
+.surface .layer-name{color:var(--teal)}
+.deep .layer-name{color:var(--amber)}
+.dark .layer-name{color:var(--red)}
+
+.layer-desc{font-size:clamp(.75rem,1.2vw,.9rem);color:var(--w3);line-height:1.4}
+.layer-examples{
+  display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.4rem;
+}
+.ex-tag{
+  font-family:var(--mono);font-size:.62rem;padding:.18rem .5rem;
+  border-radius:2px;border:1px solid var(--bord);color:var(--w3);
+}
+
+.layer-pct{
+  font-family:var(--mono);font-size:clamp(1.2rem,3vw,2rem);font-weight:700;
+  flex-shrink:0;text-align:right;
+}
+.surface .layer-pct{color:rgba(34,192,160,.5)}
+.deep .layer-pct{color:rgba(238,160,32,.5)}
+.dark .layer-pct{color:rgba(224,80,80,.5)}
+
+/* ════════════════════════════════════════════
+   SLIDE 3 — HOW TO ACCESS
+════════════════════════════════════════════*/
+.access-cols{
+  display:grid;grid-template-columns:1fr 1.8fr;
+  gap:1.2rem;width:100%;max-width:66rem;align-items:start;
+}
+
+/* Tor card */
+.tor-card{
+  border:1px solid var(--a35);border-radius:8px;
+  background:var(--a10);padding:1.6rem;
+  display:flex;flex-direction:column;align-items:center;text-align:center;
+  gap:.8rem;
+}
+.tor-big-icon{font-size:clamp(3rem,7vw,5rem);line-height:1}
+.tor-card-name{
+  font-size:clamp(1.1rem,2.5vw,1.6rem);font-weight:800;
+  color:var(--w1);letter-spacing:-.02em;
+}
+.tor-card-sub{font-size:.82rem;color:var(--w3)}
+.tor-steps{
+  width:100%;display:flex;flex-direction:column;gap:.5rem;text-align:left;
+  margin-top:.4rem;
+}
+.tor-step{
+  display:flex;align-items:center;gap:.7rem;
+  padding:.6rem .8rem;border-radius:4px;background:var(--bg-2);
+  border:1px solid var(--bord);font-size:.8rem;color:var(--w2);
+}
+.ts-num{
+  width:1.4rem;height:1.4rem;border-radius:50%;flex-shrink:0;
+  background:var(--amber);color:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:.65rem;font-weight:700;
+}
+
+/* API panel */
+.api-panel{border-radius:8px;overflow:hidden;border:1px solid var(--bord)}
+.api-section{padding:1rem 1.2rem;border-bottom:1px solid var(--bord)}
+.api-section:last-child{border-bottom:none}
+.api-section.legit{background:var(--t10)}
+.api-section.criminal{background:var(--r10)}
+.api-sec-title{
+  font-family:var(--mono);font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;
+  margin-bottom:.7rem;padding:.2rem .5rem;border-radius:2px;display:inline-block;
+}
+.legit .api-sec-title{color:var(--teal);border:1px solid var(--t25);background:var(--t10)}
+.criminal .api-sec-title{color:var(--red);border:1px solid var(--r25);background:var(--r10)}
+.api-items{display:flex;flex-direction:column;gap:.5rem}
+.api-item{background:var(--bg-2);border:1px solid var(--bord);border-radius:4px;padding:.6rem .8rem}
+.api-item-name{font-weight:600;color:var(--w1);font-size:.8rem;margin-bottom:.2rem}
+.api-endpoint{
+  font-family:var(--mono);font-size:.65rem;color:var(--amber);
+  overflow-x:auto;white-space:nowrap;margin-bottom:.2rem;
+}
+.api-item-desc{font-size:.72rem;color:var(--w3);line-height:1.4}
+
+.access-warn{
+  grid-column:1/-1;display:flex;align-items:center;justify-content:center;
+  padding:.9rem 1.4rem;border:1px solid var(--a35);border-radius:4px;
+  background:var(--a10);margin-top:-.3rem;
+}
+.tor-neq{
+  font-family:var(--mono);font-size:clamp(1rem,2.2vw,1.4rem);
+  font-weight:700;letter-spacing:.18em;color:var(--amber);
+}
+
+/* ════════════════════════════════════════════
+   SLIDE 4 — BREACH
+════════════════════════════════════════════*/
+#s3{text-align:center;position:relative;overflow:hidden}
+
+.breach-bg{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:30vw;font-weight:900;
+  color:var(--red);opacity:.03;letter-spacing:-.05em;
+  pointer-events:none;user-select:none;
+}
+
+.breach-word{
+  font-size:clamp(5rem,18vw,13rem);font-weight:900;
+  color:var(--red);line-height:.85;letter-spacing:-.04em;
+  margin-bottom:1.5rem;position:relative;
+}
+
+.breach-num{
+  font-family:var(--mono);font-size:clamp(1.5rem,4vw,3rem);font-weight:700;
+  color:var(--amber);letter-spacing:-.02em;margin-bottom:.5rem;
+}
+.breach-label{font-size:clamp(.8rem,1.4vw,1rem);color:var(--w3);letter-spacing:.04em}
+
+.breach-tickers{
+  display:flex;gap:2rem;justify-content:center;flex-wrap:wrap;
+  margin-top:2.5rem;padding-top:2rem;
+  border-top:1px solid var(--bord);
+}
+.breach-ticker{text-align:center}
+.bt-num{
+  display:block;font-family:var(--mono);font-size:clamp(1.1rem,2.5vw,1.6rem);
+  font-weight:700;color:var(--red);line-height:1;margin-bottom:.25rem;
+}
+.bt-label{font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--w3)}
+
+/* ════════════════════════════════════════════
+   SLIDE 5 — HIBP
+════════════════════════════════════════════*/
+.hibp-layout{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:1.5rem;width:100%;max-width:62rem;align-items:center;
+}
+
+/* left: how to use */
+.hibp-steps-wrap{}
+.hibp-logo-block{margin-bottom:1.4rem}
+.hibp-logo{
+  font-family:var(--mono);font-size:clamp(1rem,2vw,1.4rem);font-weight:700;
+  color:var(--w1);margin-bottom:.3rem;
+}
+.hibp-logo span{color:var(--red)}
+.hibp-tagline{font-size:.82rem;color:var(--w3)}
+
+.hibp-steps{display:flex;flex-direction:column;gap:.7rem}
+.hibp-step{
+  display:flex;align-items:center;gap:.9rem;
+  padding:.8rem 1rem;border-radius:6px;
+  border:1px solid var(--bord);background:var(--bg-2);
+}
+.hs-icon{font-size:1.5rem;flex-shrink:0}
+.hs-text strong{display:block;color:var(--w1);font-size:.88rem;margin-bottom:.1rem}
+.hs-text span{font-size:.75rem;color:var(--w3)}
+
+/* right: mockup */
+.hibp-mockup{
+  border:1px solid var(--bord);border-radius:8px;overflow:hidden;
+  background:var(--bg-2);
+}
+.mock-bar{
+  display:flex;align-items:center;gap:.5rem;
+  padding:.6rem .9rem;background:var(--bg-3);border-bottom:1px solid var(--bord);
+}
+.mock-dot{width:7px;height:7px;border-radius:50%}
+.d1{background:#E05050}.d2{background:#E8A020}.d3{background:#22C55E}
+.mock-url{
+  font-family:var(--mono);font-size:.62rem;color:var(--w3);
+  flex:1;text-align:center;
+}
+.mock-body{padding:1.2rem 1.3rem}
+.mock-input-row{
+  display:flex;border:1px solid var(--bord2);border-radius:4px;
+  overflow:hidden;margin-bottom:1rem;
+}
+.mock-input{
+  flex:1;padding:.5rem .8rem;font-size:.8rem;
+  color:var(--w2);background:var(--bg-3);
+  font-family:var(--mono);
+}
+.mock-btn{
+  padding:.5rem .9rem;background:var(--amber);color:var(--bg);
+  font-size:.75rem;font-weight:700;cursor:default;
+}
+.mock-result{
+  padding:.9rem 1rem;border-radius:6px;
+  background:var(--r10);border:1px solid var(--r25);
+}
+.mock-result-h{
+  font-weight:700;color:var(--red);font-size:.9rem;
+  margin-bottom:.7rem;display:flex;align-items:center;gap:.4rem;
+}
+.mock-breach-list{display:flex;flex-direction:column;gap:.35rem}
+.mock-breach{
+  display:flex;justify-content:space-between;
+  font-size:.72rem;padding:.3rem .6rem;
+  background:var(--bg-2);border-radius:3px;
+  border:1px solid var(--bord);
+}
+.mb-name{color:var(--w2)}
+.mb-year{font-family:var(--mono);font-size:.65rem;color:var(--w3)}
+.mb-count{font-family:var(--mono);font-size:.65rem;color:var(--red)}
+
+.hibp-cta{
+  grid-column:1/-1;
+  display:flex;align-items:center;justify-content:center;gap:.8rem;
+  padding:1rem;border:1px solid var(--a35);border-radius:6px;
+  background:var(--a10);font-family:var(--mono);font-size:.82rem;
+  color:var(--amber);cursor:pointer;text-decoration:none;
+  transition:background .2s;
+}
+.hibp-cta:hover{background:var(--a20)}
+
+/* ════════════════════════════════════════════
+   SLIDE 6 — PASSWORD CHECKER
+════════════════════════════════════════════*/
+#s5{align-items:center}
+
+.pw-wrap{width:100%;max-width:52rem}
+
+.pw-heading{
+  text-align:center;margin-bottom:2rem;
+}
+.pw-heading h2{
+  font-size:clamp(1.4rem,3vw,2rem);font-weight:800;
+  color:var(--w1);letter-spacing:-.02em;margin-bottom:.4rem;
+}
+.pw-heading p{font-size:.85rem;color:var(--w3)}
+
+.pw-terminal{
+  border:1px solid var(--bord2);border-radius:8px;
+  overflow:hidden;background:var(--bg-2);
+}
+.pw-term-bar{
+  display:flex;align-items:center;gap:.5rem;
+  padding:.6rem .9rem;background:var(--bg-3);border-bottom:1px solid var(--bord);
+}
+.ptb-dot{width:7px;height:7px;border-radius:50%}
+.ptb-dot:nth-child(1){background:var(--red);opacity:.6}
+.ptb-dot:nth-child(2){background:var(--amber);opacity:.6}
+.ptb-dot:nth-child(3){background:var(--teal);opacity:.6}
+.pw-term-title{
+  font-family:var(--mono);font-size:.62rem;color:var(--w3);
+  flex:1;text-align:center;letter-spacing:.08em;
+}
+
+.pw-term-body{padding:1.5rem}
+
+.pw-field{
+  display:flex;align-items:center;
+  border:1px solid var(--bord2);border-radius:5px;
+  background:var(--bg-3);margin-bottom:1.2rem;
+  overflow:hidden;
+  transition:border-color .2s;
+}
+.pw-field:focus-within{border-color:var(--amber)}
+.pw-prompt{
+  font-family:var(--mono);font-size:.88rem;color:var(--amber);
+  padding:.7rem .9rem;flex-shrink:0;user-select:none;
+}
+#pw-input{
+  flex:1;padding:.7rem .4rem .7rem 0;
+  font-family:var(--mono);font-size:.88rem;
+  color:var(--w1);background:transparent;
+  caret-color:var(--amber);outline:none;
+}
+#pw-input::placeholder{color:var(--w3)}
+
+.pw-results{display:flex;flex-direction:column;gap:.8rem}
+
+.pw-row{display:none}
+.pw-row.show{display:block}
+.pw-row-label{
+  font-family:var(--mono);font-size:.58rem;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--w3);margin-bottom:.3rem;
+}
+.pw-row-val{
+  font-family:var(--mono);font-size:.78rem;
+  word-break:break-all;line-height:1.5;padding:.5rem .8rem;
+  background:var(--bg-3);border:1px solid var(--bord);border-radius:4px;
+}
+
+#pw-status{
+  padding:.85rem 1rem;border-radius:5px;
+  font-size:.9rem;font-weight:600;display:none;
+}
+#pw-status.pwned{background:var(--r10);border:1px solid var(--r25);color:var(--red)}
+#pw-status.safe{background:var(--t10);border:1px solid var(--t25);color:var(--teal)}
+#pw-status.check{background:var(--a10);border:1px solid var(--a35);color:var(--amber)}
+
+.curl-row{
+  display:none;position:relative;
+  font-family:var(--mono);font-size:.72rem;
+  padding:.7rem 4rem .7rem .9rem;
+  background:var(--bg);border:1px solid var(--bord);border-radius:4px;
+  color:var(--w2);overflow-x:auto;white-space:nowrap;
+}
+.curl-row.show{display:block}
+.copy-btn{
+  position:absolute;top:.5rem;right:.5rem;
+  font-family:var(--mono);font-size:.58rem;letter-spacing:.1em;
+  color:var(--w3);border:1px solid var(--bord);padding:.2rem .5rem;border-radius:2px;
+  transition:all .2s;
+}
+.copy-btn:hover{color:var(--amber);border-color:var(--a35)}
+</style>
+
+<div id="deck">
+
+<!-- ══ SLIDE 1: TITLE ══════════════════════════════════════ -->
+<div class="slide active" data-idx="0" id="s0">
+  <div class="hero-eye">
+    <span class="hero-dot"></span>
+    5-MINUTE BRIEF
+  </div>
+  <h1 class="hero-title">THE<br>DARK<br>WEB</h1>
+  <div class="hero-line"></div>
+  <p class="hero-sub">What it is · How to access it · How to protect yourself</p>
+</div>
+
+<!-- ══ SLIDE 2: THREE LAYERS ═══════════════════════════════ -->
+<div class="slide" data-idx="1" id="s1">
+  <svg viewBox="0 0 700 496" width="100%" style="max-height:76vh;display:block" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="oceanBg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#081832" stop-opacity="0.95"/>
+        <stop offset="100%" stop-color="#020810" stop-opacity="0.98"/>
+      </linearGradient>
+      <linearGradient id="surfGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#22C0A0" stop-opacity="0.9"/>
+        <stop offset="100%" stop-color="#22C0A0" stop-opacity="0.45"/>
+      </linearGradient>
+      <linearGradient id="deepGrad2" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#4080C0" stop-opacity="0.5"/>
+        <stop offset="100%" stop-color="#2050A0" stop-opacity="0.35"/>
+      </linearGradient>
+      <linearGradient id="drkGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#E05050" stop-opacity="0.55"/>
+        <stop offset="100%" stop-color="#901010" stop-opacity="0.7"/>
+      </linearGradient>
+    </defs>
+
+    <!-- Ocean background below waterline -->
+    <rect x="0" y="143" width="700" height="353" fill="url(#oceanBg)"/>
+    <!-- Subtle water depth lines -->
+    <line x1="0" y1="168" x2="420" y2="168" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+    <line x1="0" y1="205" x2="420" y2="205" stroke="rgba(255,255,255,0.025)" stroke-width="1"/>
+    <line x1="0" y1="250" x2="420" y2="250" stroke="rgba(255,255,255,0.02)" stroke-width="1"/>
+    <line x1="0" y1="310" x2="420" y2="310" stroke="rgba(255,255,255,0.015)" stroke-width="1"/>
+
+    <!-- DARK WEB — bottom tip -->
+    <polygon points="316,388 258,458 200,488 142,458 84,388"
+      fill="url(#drkGrad)" stroke="rgba(224,80,80,0.75)" stroke-width="2" stroke-linejoin="round"/>
+
+    <!-- DEEP WEB — main underwater body -->
+    <polygon points="298,143 352,290 316,388 84,388 48,290 102,143"
+      fill="url(#deepGrad2)" stroke="rgba(64,128,192,0.5)" stroke-width="1.5" stroke-linejoin="round"/>
+
+    <!-- SURFACE WEB — tip above water -->
+    <polygon points="200,10 278,98 298,143 102,143 122,98"
+      fill="url(#surfGrad)" stroke="rgba(34,192,160,0.95)" stroke-width="2" stroke-linejoin="round"/>
+
+    <!-- Waterline wavy path -->
+    <path d="M0,143 Q28,137 56,143 Q84,149 112,143 Q140,137 168,143 Q196,149 224,143 Q252,137 280,143 Q308,149 336,143 Q364,137 392,143 Q420,149 448,143"
+      stroke="rgba(34,192,160,0.4)" stroke-width="2" fill="none"/>
+    <path d="M0,148 Q32,142 64,148 Q96,154 128,148 Q160,142 192,148 Q224,154 256,148 Q288,142 320,148 Q352,154 384,148"
+      stroke="rgba(34,192,160,0.15)" stroke-width="1" fill="none"/>
+
+    <!-- WATERLINE text -->
+    <text x="12" y="136" font-family="'SF Mono','Fira Code',Consolas,monospace" font-size="9"
+      fill="rgba(34,192,160,0.5)" letter-spacing="3">WATERLINE</text>
+
+    <!-- ── SURFACE WEB label ── -->
+    <line x1="295" y1="88" x2="390" y2="68" stroke="rgba(34,192,160,0.45)" stroke-width="1.5" stroke-dasharray="5,3"/>
+    <circle cx="295" cy="88" r="3" fill="#22C0A0" opacity="0.7"/>
+    <text x="396" y="56" font-family="system-ui,-apple-system,sans-serif" font-size="17" font-weight="800"
+      fill="#22C0A0" letter-spacing="-0.3">SURFACE WEB</text>
+    <text x="396" y="74" font-family="system-ui,sans-serif" font-size="12"
+      fill="rgba(160,185,210,0.7)">News · Google · Social media</text>
+    <text x="396" y="91" font-family="'SF Mono',Consolas,monospace" font-size="14" font-weight="700"
+      fill="rgba(34,192,160,0.65)">≈ 4%</text>
+
+    <!-- ── DEEP WEB label ── -->
+    <line x1="352" y1="262" x2="390" y2="238" stroke="rgba(64,128,192,0.45)" stroke-width="1.5" stroke-dasharray="5,3"/>
+    <circle cx="352" cy="262" r="3" fill="#5090D8" opacity="0.7"/>
+    <text x="396" y="226" font-family="system-ui,-apple-system,sans-serif" font-size="17" font-weight="800"
+      fill="#5090D8" letter-spacing="-0.3">DEEP WEB</text>
+    <text x="396" y="244" font-family="system-ui,sans-serif" font-size="12"
+      fill="rgba(160,185,210,0.7)">Email · Banking · Medical records</text>
+    <text x="396" y="261" font-family="'SF Mono',Consolas,monospace" font-size="14" font-weight="700"
+      fill="rgba(64,128,192,0.65)">≈ 90%</text>
+
+    <!-- ── DARK WEB label ── -->
+    <line x1="286" y1="422" x2="390" y2="405" stroke="rgba(224,80,80,0.45)" stroke-width="1.5" stroke-dasharray="5,3"/>
+    <circle cx="286" cy="422" r="3" fill="#E05050" opacity="0.7"/>
+    <text x="396" y="393" font-family="system-ui,-apple-system,sans-serif" font-size="17" font-weight="800"
+      fill="#E05050" letter-spacing="-0.3">DARK WEB</text>
+    <text x="396" y="411" font-family="system-ui,sans-serif" font-size="12"
+      fill="rgba(160,185,210,0.7)">.onion sites · Tor required</text>
+    <text x="396" y="428" font-family="'SF Mono',Consolas,monospace" font-size="14" font-weight="700"
+      fill="rgba(224,80,80,0.65)">&lt; 1%</text>
+  </svg>
+</div>
+
+<!-- ══ SLIDE 3: HOW TO ACCESS ══════════════════════════════ -->
+<div class="slide" data-idx="2" id="s2">
+  <div class="access-cols">
+
+    <!-- Tor Browser -->
+    <div class="tor-card">
+      <div class="tor-big-icon">🧅</div>
+      <div class="tor-card-name">Tor Browser</div>
+      <div class="tor-card-sub">Free · Works like Firefox · Opens .onion sites</div>
+      <div class="tor-steps">
+        <div class="tor-step">
+          <span class="ts-num">1</span>
+          Download from <strong style="color:var(--w1);margin-left:.3rem">torproject.org</strong>
+        </div>
+        <div class="tor-step">
+          <span class="ts-num">2</span>
+          Install &amp; launch — no config needed
+        </div>
+        <div class="tor-step">
+          <span class="ts-num">3</span>
+          Paste any <strong style="color:var(--amber);margin:0 .2rem">.onion</strong> URL and go
+        </div>
+      </div>
+    </div>
+
+    <!-- APIs -->
+    <div class="api-panel">
+      <div class="api-section legit">
+        <div class="api-sec-title">Threat Intel APIs — Sold Openly</div>
+        <div class="api-items">
+          <div class="api-item">
+            <div class="api-item-name">Ahmia</div>
+            <div class="api-endpoint">GET ahmia.fi/search/?q={query}</div>
+            <div class="api-item-desc">Free clearnet search API for .onion sites. No Tor needed.</div>
+          </div>
+          <div class="api-item">
+            <div class="api-item-name">Intelligence X</div>
+            <div class="api-endpoint">POST intelx.io/phonebook/search</div>
+            <div class="api-item-desc">Searches dark web, Tor, breach dumps, Telegram leaks. API key required.</div>
+          </div>
+          <div class="api-item">
+            <div class="api-item-name">DarkOwl</div>
+            <div class="api-endpoint">GET api.darkowl.com/api/v2/darknet</div>
+            <div class="api-item-desc">Commercial dark web monitoring. Used by enterprises to detect credential leaks.</div>
+          </div>
+        </div>
+      </div>
+      <div class="api-section criminal">
+        <div class="api-sec-title">Criminal — Sold on Dark Markets</div>
+        <div class="api-items">
+          <div class="api-item">
+            <div class="api-item-name">Credential Lookup APIs</div>
+            <div class="api-endpoint">POST /lookup · {email, hash}</div>
+            <div class="api-item-desc">Query stolen credential databases. Sold on Telegram for $20–$200/mo.</div>
+          </div>
+          <div class="api-item">
+            <div class="api-item-name">Stealer Log APIs</div>
+            <div class="api-endpoint">GET /logs?domain={target}</div>
+            <div class="api-item-desc">Returns infostealer output — cookies, passwords, autofill — for a target domain.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="access-warn">
+      <span class="tor-neq">TOR&nbsp; ≠&nbsp; INVISIBLE</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ SLIDE 4: BREACH ════════════════════════════════════ -->
+<div class="slide" data-idx="3" id="s3">
+  <div class="breach-bg">BREACH</div>
+  <div class="breach-word">BREACH.</div>
+  <div class="breach-num">14,000,000,000+</div>
+  <div class="breach-label">records stolen and indexed — your data is probably in here</div>
+  <div class="breach-tickers">
+    <div class="breach-ticker">
+      <span class="bt-num">3B</span>
+      <span class="bt-label">Yahoo · 2013</span>
+    </div>
+    <div class="breach-ticker">
+      <span class="bt-num">773M</span>
+      <span class="bt-label">Collection #1 · 2019</span>
+    </div>
+    <div class="breach-ticker">
+      <span class="bt-num">533M</span>
+      <span class="bt-label">Facebook · 2019</span>
+    </div>
+    <div class="breach-ticker">
+      <span class="bt-num">164M</span>
+      <span class="bt-label">LinkedIn · 2016</span>
+    </div>
+    <div class="breach-ticker">
+      <span class="bt-num">153M</span>
+      <span class="bt-label">Adobe · 2013</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SLIDE 5: HIBP ══════════════════════════════════════ -->
+<div class="slide" data-idx="4" id="s4">
+  <div class="hibp-layout">
+
+    <div class="hibp-steps-wrap">
+      <div class="hibp-logo-block">
+        <div class="hibp-logo">haveibeenpwned<span>.com</span></div>
+        <div class="hibp-tagline">Free breach lookup by Troy Hunt · 14B+ records</div>
+      </div>
+      <div class="hibp-steps">
+        <div class="hibp-step">
+          <span class="hs-icon">📧</span>
+          <div class="hs-text">
+            <strong>Go to haveibeenpwned.com</strong>
+            <span>No account needed. Free forever.</span>
+          </div>
+        </div>
+        <div class="hibp-step">
+          <span class="hs-icon">🔍</span>
+          <div class="hs-text">
+            <strong>Enter your email address</strong>
+            <span>It checks against hundreds of known breaches instantly.</span>
+          </div>
+        </div>
+        <div class="hibp-step">
+          <span class="hs-icon">⚠️</span>
+          <div class="hs-text">
+            <strong>See every breach you appear in</strong>
+            <span>Name, date, what data was exposed.</span>
+          </div>
+        </div>
+        <div class="hibp-step">
+          <span class="hs-icon">🔔</span>
+          <div class="hs-text">
+            <strong>Subscribe for future alerts</strong>
+            <span>Get notified the moment your email appears in a new breach.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Browser mockup -->
+    <div class="hibp-mockup">
+      <div class="mock-bar">
+        <span class="mock-dot d1"></span>
+        <span class="mock-dot d2"></span>
+        <span class="mock-dot d3"></span>
+        <span class="mock-url">haveibeenpwned.com</span>
+      </div>
+      <div class="mock-body">
+        <div class="mock-input-row">
+          <div class="mock-input">user@example.com</div>
+          <div class="mock-btn">pwned?</div>
+        </div>
+        <div class="mock-result">
+          <div class="mock-result-h">⚠️ Oh no — pwned in 5 breaches</div>
+          <div class="mock-breach-list">
+            <div class="mock-breach">
+              <span class="mb-name">Adobe</span>
+              <span class="mb-year">2013</span>
+              <span class="mb-count">153M accounts</span>
+            </div>
+            <div class="mock-breach">
+              <span class="mb-name">LinkedIn</span>
+              <span class="mb-year">2016</span>
+              <span class="mb-count">164M accounts</span>
+            </div>
+            <div class="mock-breach">
+              <span class="mb-name">Dropbox</span>
+              <span class="mb-year">2012</span>
+              <span class="mb-count">69M accounts</span>
+            </div>
+            <div class="mock-breach">
+              <span class="mb-name">Canva</span>
+              <span class="mb-year">2019</span>
+              <span class="mb-count">137M accounts</span>
+            </div>
+            <div class="mock-breach">
+              <span class="mb-name">Twitch</span>
+              <span class="mb-year">2021</span>
+              <span class="mb-count">Source code + data</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button class="hibp-cta" onclick="window.open('https://haveibeenpwned.com','_blank','noopener,noreferrer')">
+      🔍 &nbsp; Open haveibeenpwned.com now
+    </button>
+
+  </div>
+</div>
+
+<!-- ══ SLIDE 6: PASSWORD CHECKER ══════════════════════════ -->
+<div class="slide" data-idx="5" id="s5">
+  <div class="pw-wrap">
+    <div class="pw-heading">
+      <h2>🔑 &nbsp; Is Your Password Compromised?</h2>
+      <p>SHA-1 computed locally · only 5 chars sent to API · your password never leaves this page</p>
+    </div>
+
+    <div class="pw-terminal">
+      <div class="pw-term-bar">
+        <span class="ptb-dot"></span>
+        <span class="ptb-dot"></span>
+        <span class="ptb-dot"></span>
+        <span class="pw-term-title">pwnedpasswords k-anonymity checker</span>
+      </div>
+      <div class="pw-term-body">
+
+        <div class="pw-field">
+          <span class="pw-prompt">$&nbsp;</span>
+          <input id="pw-input" type="password" placeholder="type a password to check…" autocomplete="off" spellcheck="false">
+        </div>
+
+        <div class="pw-results">
+          <div class="pw-row" id="hash-row">
+            <div class="pw-row-label">SHA-1 Hash (computed on your device)</div>
+            <div class="pw-row-val">
+              <span style="color:var(--amber)" id="hash-pfx"></span><span style="color:var(--w3)" id="hash-sfx"></span>
+            </div>
+          </div>
+
+          <div id="pw-status"></div>
+
+          <div class="curl-row" id="curl-row">
+            <button class="copy-btn" id="copy-btn">COPY</button>
+            <span style="color:var(--w3)">curl </span><span style="color:var(--teal)" id="curl-url"></span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /deck -->
+
+<!-- Navigation -->
+<div id="dots"></div>
+<button class="arrow" id="prev">‹</button>
+<button class="arrow" id="next">›</button>
+<div id="snum"></div>
+<div id="stitle"></div>
+
+<script>
+/* ── NAV ── */
+const TITLES = ['The Dark Web','Three Layers','How to Access','Breach','Have I Been Pwned','Password Check'];
+const slides = Array.from(document.querySelectorAll('.slide'));
+const dotsEl = document.getElementById('dots');
+const snumEl = document.getElementById('snum');
+const stitleEl = document.getElementById('stitle');
+const prevBtn = document.getElementById('prev');
+const nextBtn = document.getElementById('next');
+let cur = 0;
+
+slides.forEach((_,i) => {
+  const d = document.createElement('button');
+  d.className = 'dot' + (i===0?' on':'');
+  d.setAttribute('aria-label', `Slide ${i+1}`);
+  d.onclick = () => go(i);
+  dotsEl.appendChild(d);
+});
+
+function go(n) {
+  if (n < 0 || n >= slides.length) return;
+  slides[cur].classList.remove('active');
+  slides[cur].classList.add('prev');
+  setTimeout(() => slides[cur].classList.remove('prev'), 400);
+  cur = n;
+  slides[cur].classList.add('active');
+  document.querySelectorAll('.dot').forEach((d,i) => d.classList.toggle('on', i===cur));
+  snumEl.textContent = `${String(cur+1).padStart(2,'0')} / ${String(slides.length).padStart(2,'0')}`;
+  stitleEl.textContent = TITLES[cur] || '';
+  prevBtn.disabled = cur === 0;
+  nextBtn.disabled = cur === slides.length - 1;
+}
+
+prevBtn.onclick = () => go(cur-1);
+nextBtn.onclick = () => go(cur+1);
+document.addEventListener('keydown', e => {
+  if(['ArrowRight','ArrowDown',' '].includes(e.key)){e.preventDefault();go(cur+1)}
+  if(['ArrowLeft','ArrowUp'].includes(e.key)){e.preventDefault();go(cur-1)}
+});
+go(0);
+
+/* ── PASSWORD CHECKER ── */
+const KNOWN = {
+  'password':10164470,'123456':37359195,'12345678':10364977,
+  '123456789':7992972,'qwerty':9241776,'password123':2000000,
+  'admin':532772,'letmein':3284944,'monkey':1531741,
+  'dragon':889665,'iloveyou':1491153,'sunshine':613034,
+  'princess':455819,'welcome':1007023,'shadow':1151975,
+  'batman':419477,'superman':349618,'master':791601,
+  'hello':2000000,'111111':3100000,'1234':5000000,
+  'abc123':2766158,'trustno1':1226839,'test':400000,
+  '000000':827028,'pass':600000,'qwerty123':2000000,
+};
+
+async function sha1(str) {
+  const buf = new TextEncoder().encode(str);
+  const hash = await crypto.subtle.digest('SHA-1', buf);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('').toUpperCase();
+}
+
+const pwInput  = document.getElementById('pw-input');
+const hashRow  = document.getElementById('hash-row');
+const hashPfx  = document.getElementById('hash-pfx');
+const hashSfx  = document.getElementById('hash-sfx');
+const pwStatus = document.getElementById('pw-status');
+const curlRow  = document.getElementById('curl-row');
+const curlUrl  = document.getElementById('curl-url');
+const copyBtn  = document.getElementById('copy-btn');
+
+let debounce;
+pwInput.addEventListener('input', () => {
+  clearTimeout(debounce);
+  const val = pwInput.value;
+  if (!val) {
+    hashRow.classList.remove('show');
+    curlRow.classList.remove('show');
+    pwStatus.style.display = 'none';
+    return;
+  }
+  debounce = setTimeout(async () => {
+    const hash = await sha1(val);
+    const prefix = hash.slice(0,5), suffix = hash.slice(5);
+
+    hashRow.classList.add('show');
+    curlRow.classList.add('show');
+    hashPfx.textContent = prefix;
+    hashSfx.textContent = suffix;
+    curlUrl.textContent = `https://api.pwnedpasswords.com/range/${prefix}`;
+
+    const count = KNOWN[val.toLowerCase()];
+    pwStatus.style.display = 'block';
+    if (count !== undefined) {
+      pwStatus.className = 'pwned';
+      pwStatus.textContent = `⚠️  Pwned ${count.toLocaleString()} times — change this password everywhere you've used it.`;
+    } else if (val.length < 8) {
+      pwStatus.className = 'pwned';
+      pwStatus.textContent = `⚠️  Too short (${val.length} chars) — even without a breach match, this is easily cracked.`;
+    } else {
+      pwStatus.className = 'check';
+      pwStatus.textContent = `Copy the curl command and run it in Terminal to check the full HIBP database live.`;
+    }
+  }, 200);
+});
+
+copyBtn.addEventListener('click', async () => {
+  const val = pwInput.value; if (!val) return;
+  const hash = await sha1(val);
+  navigator.clipboard.writeText(`curl https://api.pwnedpasswords.com/range/${hash.slice(0,5)}`).then(() => {
+    copyBtn.textContent = 'COPIED ✓';
+    setTimeout(() => copyBtn.textContent = 'COPY', 1800);
+  });
+});
+</script>
+
+</body></html>
